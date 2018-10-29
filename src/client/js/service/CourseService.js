@@ -1,11 +1,11 @@
 
 
+import BaseService from "./BaseService";
 
-
-const CourseService = {
-    async save () {
-        db
+class CourseService extends BaseService {
+    constructor(modelName) {
+        super(modelName);
     }
-};
+}
 
-module.exports = CourseService;
+export default new CourseService('course');

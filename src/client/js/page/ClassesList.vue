@@ -29,11 +29,38 @@
                     prop="teacher.name"
                     label="教师"
                     min-width="50">
+                <template slot-scope="scope">
+                    <el-popover
+                            placement="left-start"
+                            width="300"
+                            trigger="click">
+                        <ul style="line-height: 1.8;">
+                            <li>教师姓名：{{ scope.row.teacher.name }}</li>
+                            <li>微信号：{{ scope.row.teacher.wechat }}</li>
+                            <li>电话：{{ scope.row.teacher.phone }}</li>
+                            <li>备注：{{ scope.row.teacher.remark }}</li>
+                        </ul>
+                        <el-button type="text" slot="reference" @click="currentTeacher=scope.row.teacher">{{ scope.row.teacher.name }}</el-button>
+                    </el-popover>
+                </template>
             </el-table-column>
             <el-table-column
                     prop="course.name"
                     label="课程"
                     min-width="60">
+                <template slot-scope="scope">
+                    <el-popover
+                            placement="left-start"
+                            width="300"
+                            trigger="click">
+                        <ul style="line-height: 1.8;">
+                            <li>课程名：{{ scope.row.course.name }}</li>
+                            <li>课时数：{{ scope.row.course.hours }}</li>
+                            <li>备注：{{ scope.row.course.remark }}</li>
+                        </ul>
+                        <el-button type="text" slot="reference">{{ scope.row.course.name }}</el-button>
+                    </el-popover>
+                </template>
             </el-table-column>
             <el-table-column
                     prop="phone"
@@ -52,16 +79,43 @@
                 </template>
             </el-table-column>
             <el-table-column
+                    prop="classtime"
+                    label="上课时间"
+                    min-width="60">
+                <template slot-scope="scope">
+                    每周{{ Utils.getWeekDay(scope.row.weekday) }} {{ scope.row.classtime }}
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="hoursOfSign"
+                    label="每次签到课时"
+                    min-width="60">
+                <template slot-scope="scope">
+                    {{ scope.row.hoursOfSign }}课时
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="fees"
+                    label="课时费"
+                    min-width="60">
+                <template slot-scope="scope">
+                    {{ scope.row.fees }}元
+                </template>
+            </el-table-column>
+            <el-table-column
                     label="操作"
                     min-width="50">
                 <template slot-scope="scope">
                     <el-button type="text" icon="el-icon-edit" @click="toForm(scope.row._id)"></el-button>
-                    <el-button type="text" class="u-primary" icon="el-icon-tickets" @click="buildSign(scope.row._id)"></el-button>
+                    <el-button type="text" class="u-primary" icon="el-icon-tickets" @click="displaySignTable(scope.row._id)"></el-button>
                     <el-button type="text" class="u-danger" icon="el-icon-delete" @click="doDelete(scope.$index)"></el-button>
+
+                    <el-button type="text" class="u-danger" @click="generateSignTable(scope.row)">生成签到表</el-button>
                 </template>
             </el-table-column>
         </el-table>
 
+        <!-- 新增或编辑班级 -->
         <class-form
                 :classId="editClassId"
                 @on-close="isShowDialog=false"
@@ -69,15 +123,17 @@
                 v-if="isShowDialog">
         </class-form>
 
+        <!-- 学员管理 -->
         <student-manage :classId="manageStudentClassId"
                         @on-close="manageStudentClassId=null"
                         v-if="manageStudentClassId">
         </student-manage>
 
-        <sign-info :classId="signClassId"
-                   @on-close="isShowSignDialog=false"
-                   v-if="isShowSignDialog">
-        </sign-info>
+        <!-- 签到表 -->
+        <sign-table :classId="signClassId"
+                    @on-close="isShowSignDialog=false"
+                    v-if="isShowSignDialog">
+        </sign-table>
     </div>
 </template>
 
@@ -86,21 +142,21 @@
     import moment from 'moment';
     import ClassForm from '../component/ClassesForm.vue';
     import StudentManage from '../component/StudentManage.vue';
-    import SignInfo from '../component/SignInfo.vue';
-    import BaseService from '../service/BaseService';
-
-    const classesService = new BaseService('classes');
+    import SignTable from '../component/SignTable.vue';
+    import classesService from '../service/ClassesService';
+    import Utils from '../utils/Utils';
 
     export default {
         components: {
             ClassForm,
             StudentManage,
-            SignInfo
+            SignTable
         },
 
         data () {
             return {
                 moment,
+                Utils,
                 params: {
                     classId: '',
                     startDate: '',
@@ -114,6 +170,8 @@
                 editClassId: null,
                 manageStudentClassId: null,
                 signClassId: null,
+
+                currentTeacher: null,
 
                 isShowDialog: false,
                 isShowSignDialog: false,
@@ -150,13 +208,28 @@
             },
 
             //生成签到表
-            buildSign (classId) {
+            displaySignTable (classId) {
                 this.signClassId = classId;
                 this.isShowSignDialog = true;
             },
 
+            //生成签到表
+            generateSignTable (classes) {
+                classesService.findById(classes._id).then( ({ data }) => {
+                    if( !data.signTable || data.signTable.length == 0 ) return;
+
+                    let { _id, startDate, hoursOfSign, weekday, course } = classes;
+                    let studentList = data.studentList.map( s => ({ name: s.name, status: null }) );
+
+                    let period = Utils.buildPeriod(course.hours, hoursOfSign, startDate, weekday);
+                    let signTable = period.map( date => ({ date, studentList }) );
+
+                    classesService.createSignTable(_id, signTable);
+                });
+            },
+
             _findTop20 () {
-                axios.get('/api/classes/top20').then( ({ data }) => this.top20List = data );
+                classesService.findTop20().then( ({ data }) => this.top20List = data );
             },
 
             _loadList () {

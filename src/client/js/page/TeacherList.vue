@@ -2,7 +2,7 @@
 <template>
     <div>
         <div class="u-clear">
-            <el-button type="success" class="u-fr" round plain size="small" @click="toForm()">+ 新增</el-button>
+            <el-button type="success" class="u-fr" round plain size="small" @click="toForm()">+ 新增教师</el-button>
         </div>
 
         <el-table
@@ -38,41 +38,70 @@
                 </template>
             </el-table-column>
             <el-table-column
+                    label="教授班级"
+                    min-width="80">
+                <template slot-scope="scope">
+                    <el-popover
+                            placement="left-start"
+                            width="700"
+                            trigger="click">
+                        <el-table :data="currentClasses" empty-text="还没有安排授课班级">
+                            <el-table-column min-width="80" property="name" label="班级名称"></el-table-column>
+                            <el-table-column min-width="80" property="course.name" label="课程名称"></el-table-column>
+                            <el-table-column min-width="60" property="startDate" label="开班时间">
+                                <template slot-scope="scope">
+                                    {{ scope.row.startDate | moment('YYYY-MM-DD') }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column min-width="100" property="weekday" label="上课时间">
+                                <template slot-scope="scope">
+                                    每周{{ Utils.getWeekDay(scope.row.weekday) }} {{ scope.row.classtime }}
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <el-button type="text" slot="reference" @click="showClasses(scope.row._id)">查看</el-button>
+                    </el-popover>
+                </template>
+            </el-table-column>
+            <el-table-column
                     label="操作"
                     min-width="50">
                 <template slot-scope="scope">
                     <el-button type="text" icon="el-icon-edit" @click="toForm(scope.row)"></el-button>
+                    <el-tooltip content="查询课时费" placement="top-start">
+                        <compute-fees :teacher="scope.row"></compute-fees>
+                    </el-tooltip>
                     <el-button type="text" class="u-danger" icon="el-icon-delete" @click="doDelete(scope.row._id)"></el-button>
                 </template>
             </el-table-column>
         </el-table>
 
-        <div v-if="isShowDialog">
+        <div v-if="isShowFormDialog">
             <el-dialog
                     :visible="true"
                     title="新增教师"
-                    @close="isShowDialog=false"
+                    @close="isShowFormDialog=false"
                     width="30%">
                 <el-form ref="form" :rules="rules" :model="form" label-width="80px">
                     <el-form-item label="姓名" prop="name">
-                        <el-input v-model="form.name"></el-input>
+                        <el-input v-model="form.name" :maxlength="20" placeholder="输入姓名"></el-input>
                     </el-form-item>
                     <el-form-item label="微信号" prop="wechat">
-                        <el-input v-model="form.wechat"></el-input>
+                        <el-input v-model="form.wechat" :maxlength="30" placeholder="输入微信号"></el-input>
                     </el-form-item>
                     <el-form-item label="电话">
-                        <el-input v-model="form.phone"></el-input>
+                        <el-input v-model="form.phone" :maxlength="20" placeholder="输入电话"></el-input>
                     </el-form-item>
                     <el-form-item label="主讲课程">
-                        <el-input v-model="form.course"></el-input>
+                        <el-input v-model="form.course" :maxlength="20" placeholder="输入主讲课程"></el-input>
                     </el-form-item>
                     <el-form-item label="描述">
-                        <el-input type="textarea" :rows="3" v-model="form.remark"></el-input>
+                        <el-input type="textarea" :rows="3" :maxlength="500" placeholder="输入描述" v-model="form.remark"></el-input>
                     </el-form-item>
                 </el-form>
                 <span slot="footer" class="dialog-footer">
-                    <el-button @click="isShowDialog = false">取 消</el-button>
-                    <el-button type="primary" @click="doAdd">确 定</el-button>
+                    <el-button @click="isShowFormDialog = false">取 消</el-button>
+                    <el-button type="primary" @click="doSubmit">确 定</el-button>
                 </span>
             </el-dialog>
         </div>
@@ -80,13 +109,15 @@
 </template>
 
 <script>
-    import BaseService from '../service/BaseService';
-    const teacherService = new BaseService('teacher');
+    import teacherService from '../service/TeacherService';
+    import ComputeFees from '../component/ComputeFees.vue';
+    import Utils from '../utils/Utils';
 
     export default {
 
         data () {
             return {
+                Utils,
                 list: [],
 
                 form: {
@@ -102,7 +133,10 @@
                     wechat: [{ required: true, message: '请输入微信号', trigger: 'blur' }]
                 },
 
-                isShowDialog: false
+                isShowFormDialog: false,
+                isShowFeesDialog: false,
+                currentTeacher: null,
+                currentClasses: []
             }
         },
 
@@ -111,13 +145,25 @@
         },
 
         methods: {
-            toForm (teacher = {name: '', wechat: '', phone: '', course: '', remark: ''}) {
-                this.isShowDialog = true;
-                console.log('--->', teacher)
-                Object.assign(this.form, teacher);
+            toForm (teacher) {
+                this.isShowFormDialog = true;
+                Object.assign(this.form, teacher || getEmptyForm());
             },
 
-            doAdd () {
+            //显示教师课时费
+            showFeesDialog (teacher) {
+                this.isShowFeesDialog = true;
+                this.currentTeacher = teacher;
+            },
+
+            //显示当前教师所授课程
+            showClasses (id) {
+                teacherService.findClassesByTeacherId(id).then( ({ data = [] }) => {
+                    this.currentClasses = data;
+                });
+            },
+
+            doSubmit () {
                 this.$refs.form.validate( valid => {
                     if(!valid) return;
 
@@ -127,18 +173,28 @@
 
                     p.then( res => {
                         this._loadList();
-                        this.isShowDialog = false;
+                        this.isShowFormDialog = false;
                     });
                 });
             },
 
             doDelete (id) {
-                teacherService.deleteById(id).then( res => this._loadList() );
+                teacherService.findClassesByTeacherId(id).then( ({ data = [] }) => {
+                    if(data.length > 0) {
+                        this.$message.warning('该教师已经有关联的班级，不能删除！');
+                    } else {
+                        teacherService.deleteById(id).then( res => this._loadList() );
+                    }
+                });
             },
 
             _loadList () {
                 teacherService.findList().then( ({ data }) => this.list = data );
             }
+        },
+
+        components: {
+            ComputeFees
         }
     }
 

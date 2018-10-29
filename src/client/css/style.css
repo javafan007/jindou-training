@@ -5,10 +5,16 @@
     box-sizing: border-box;
 }
 
+ul {
+    list-style-type: none;
+}
+
+.u-inblock { display: inline-block; }
 .u-fl { float: left; }
 .u-fr { float: right; }
-.u-clear {
-    content: '';
+.u-clear::after {
+    content: '.';
+    visibility: hidden;
     clear: both;
 }
 .u-primary { color: #409EFF; }
@@ -27,11 +33,17 @@
 }
 
 .u-mt20 { margin-top: 20px; }
+.u-mt10 { margin-top: 10px; }
+.u-ml20 { margin-left: 20px; }
 .u-ml10 { margin-left: 10px; }
+
+.u-num-fz-middle { font-size: 24px; }
+.u-num-fz-large { font-size: 28px; }
+
 
 
 .wrap {
-    padding: 20px;
+
 }
 
 .panel-title {

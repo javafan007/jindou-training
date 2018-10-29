@@ -3,14 +3,11 @@ const Koa = require('koa');
 const bodyParser = require('koa-bodyparser');
 const static = require('koa-static');
 const views = require('koa-views');
-// const config = require('./config/index');
 const compress = require('koa-compress');
 const session = require('koa-session');
 const router = require('./router/index');
-// const CourseService = require('./service/CourseService');
 require('./db/index');
 
-// console.log('--->', CourseService.save() );
 
 
 let app = new Koa();
@@ -54,13 +51,13 @@ app.use( async (ctx, next) => {
 
 
 //登录拦截器
-// app.use( async (ctx, next) => {
-//     if( !ctx.session.user && ctx.path.startsWith('/api') && ctx.path !== '/api/login') {
-//         ctx.throw(401, '用户未登录！');
-//     } else {
-//         await next();
-//     }
-// });
+app.use( async (ctx, next) => {
+    if( !ctx.session.user && ctx.path.startsWith('/api') && ctx.path !== '/api/user/login') {
+        ctx.throw(401, '用户未登录！');
+    } else {
+        await next();
+    }
+});
 
 
 app.use(router.routes()).use(router.allowedMethods());

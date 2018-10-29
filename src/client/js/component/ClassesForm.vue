@@ -6,7 +6,7 @@
             @close="onClose"
             width="30%">
 
-        <el-form ref="form" :rules="rules" :model="form" label-width="100px">
+        <el-form ref="form" :rules="rules" :model="form" label-width="120px">
             <el-form-item label="班级名称" prop="name">
                 <el-input v-model="form.name" :maxlength="30" placeholder="请输入班级名称"></el-input>
             </el-form-item>
@@ -38,13 +38,22 @@
                         placeholder="请选择开班日期">
                 </el-date-picker>
             </el-form-item>
-            <el-form-item label="每周几上课" prop="startDate">
+            <el-form-item label="上课时间" prop="classtime">
+                <el-input v-model="form.classtime" placeholder="请输入上课时间" :maxlength="20"></el-input>
+            </el-form-item>
+            <el-form-item label="每周几上课" prop="weekday">
                 <el-select v-model="form.weekday" style="width: 100%;" placeholder="请选择周几上课">
                     <el-option :label="'周' + weekday" :value="(idx + 1) % 7" v-for="(weekday, idx) in weekDays"></el-option>
                 </el-select>
             </el-form-item>
+            <el-form-item label="每次签到课时" prop="hoursOfSign">
+                <el-input-number v-model="form.hoursOfSign" :min="1" :max="10"></el-input-number>
+            </el-form-item>
+            <el-form-item label="课时费" prop="fees">
+                <el-input v-model.number="form.fees" placeholder="请输入课时费" :maxlength="4"></el-input>
+            </el-form-item>
             <el-form-item label="备注">
-                <el-input type="textarea" :rows="3" v-model="form.remark"></el-input>
+                <el-input type="textarea" :rows="3" :maxlength="500" v-model="form.remark"></el-input>
             </el-form-item>
         </el-form>
 
@@ -79,6 +88,10 @@
                     course: [{ required: true, message: '请选择课程', trigger: 'blur' }],
                     teacher: [{ required: true, message: '请选择老师', trigger: 'blur' }],
                     startDate: [{ required: true, message: '请选择开班时间', trigger: 'blur' }],
+                    classtime: [{ required: true, message: '请输入上课时间', trigger: 'blur' }],
+                    weekday: [{ required: true, message: '请输入周几上课', trigger: 'blur' }],
+                    hoursOfSign: [{ required: true, message: '请输入每次上课课时', trigger: 'blur' }],
+                    fees: [{ required: true, message: '请输入老师课时费', trigger: 'blur' }],
                 }
             }
         },
@@ -95,14 +108,15 @@
 
         methods: {
             doSubmit () {
-                console.log(this.form);
-
                 this.$refs.form.validate( valid => {
                     if(!valid) return;
 
-                    let p = this.form._id ?
-                        classesService.update(this.form) :
-                        classesService.create(this.form);
+                    let p = null;
+                    if(this.form._id) {
+                        p = classesService.update(this.form);
+                    } else {
+                        p = classesService.create(this.form);
+                    }
 
                     p.then( res => this.$emit('on-success') );
                 });
@@ -120,7 +134,10 @@
             course: null,     //课程
             teacher: null,    //教师
             startDate: null,    //开班时间
-            weekday: null,
+            weekday: null,      //每周几上课
+            classtime: '',      //上课时间
+            hoursOfSign: 1,     //每次签到多少课时
+            fees: null,         //课时费
             remark: ''
         };
     }

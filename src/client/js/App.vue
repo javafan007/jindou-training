@@ -1,27 +1,79 @@
 
 <template>
     <div class="wrap">
-        <el-tabs v-model="activeItem" @tab-click="handleClick">
-            <el-tab-pane label="班级管理" name="classes"></el-tab-pane>
-            <el-tab-pane label="课程管理" name="course"></el-tab-pane>
-            <el-tab-pane label="教师管理" name="teacher"></el-tab-pane>
-        </el-tabs>
-        <router-view></router-view>
+        <header class="header u-clear">
+            <nav class="u-fl">
+                <router-link :to="{name: 'classes'}" class="header-item" :class="{'header-item--selected': $route.name == 'classes'}">班级管理</router-link>
+                <router-link :to="{name: 'course'}" class="header-item" :class="{'header-item--selected': $route.name == 'course'}">课程管理</router-link>
+                <router-link :to="{name: 'teacher'}" class="header-item" :class="{'header-item--selected': $route.name == 'teacher'}">教师管理</router-link>
+            </nav>
+
+            <div class="u-fr">
+                <span class="header-item">{{ userName }}</span>
+                <a href="javascript:;" class="header-item" @click="logout">退出</a>
+            </div>
+        </header>
+
+        <div class="content">
+            <router-view></router-view>
+        </div>
     </div>
 </template>
 
 <script>
+    import userService from './service/UserService';
+
     export default {
         data () {
             return {
-                activeItem: 'classes'
+
+            }
+        },
+
+        computed: {
+            userName () {
+                if(localStorage.userInfo) {
+                    return JSON.parse(localStorage.userInfo).name;
+                }
+                return '';
             }
         },
 
         methods: {
-            handleClick() {
-                this.$router.push({ name: this.activeItem });
+            logout () {
+                userService.logout().then(res => {
+                    delete localStorage['userInfo'];
+                    this.$router.push({ name: 'login'});
+                });
             }
         }
     }
 </script>
+
+<style>
+    .header {
+        width: 100%;
+        padding: 0 50px;
+        background: #409EFF;
+        line-height: 38px;
+    }
+
+    .header-item {
+        display: inline-block;
+        text-decoration: none;
+        color: #fff;
+        height: 100%;
+        padding: 0 10px;
+        font-size: 14px;
+        opacity: .9;
+    }
+    .header-item:hover {
+        opacity: .7;
+    }
+    .header-item--selected {
+        background: rgba(0, 0, 0, .3);
+    }
+    .content {
+        padding: 20px;
+    }
+</style>

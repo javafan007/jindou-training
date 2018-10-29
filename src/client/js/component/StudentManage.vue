@@ -5,10 +5,10 @@
                 :visible="true"
                 title="学员管理"
                 @close="onClose"
-                width="60%">
+                width="70%">
 
             <div class="u-clear">
-                <el-button type="success" round plain size="small" class="u-fr" @click="isShowDialog=true">+ 新增学员</el-button>
+                <el-button type="success" round plain size="small" class="u-fr" @click="toForm()">+ 新增学员</el-button>
             </div>
             <el-table
                     class="u-mt20"
@@ -53,7 +53,6 @@
                         min-width="50">
                     <template slot-scope="scope">
                         <el-button type="text" icon="el-icon-edit" @click="toForm(scope.row)"></el-button>
-                        <el-button type="text" class="u-danger" icon="el-icon-delete" @click="doDelete(scope.row._id)"></el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -65,6 +64,7 @@
 
         <!--学员表单-->
         <student-form :classId="classId"
+                      :studentId="editStudent._id"
                       @on-close="isShowDialog=false"
                       @on-success="onSaveSuccess"
                       v-if="isShowDialog">
@@ -91,6 +91,7 @@
         data () {
             return {
                 list: [],
+                editStudent: null,
                 isShowDialog: false
             }
         },
@@ -100,7 +101,8 @@
         },
 
         methods: {
-            toForm () {
+            toForm (editStudent) {
+                this.editStudent = editStudent;
                 this.isShowDialog = true;
             },
 

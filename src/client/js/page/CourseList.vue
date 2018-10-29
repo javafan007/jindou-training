@@ -3,7 +3,7 @@
 <template>
     <div>
         <div class="u-clear">
-            <el-button type="success" class="u-fr" round plain size="small" @click="toForm()">+ 新增</el-button>
+            <el-button type="success" class="u-fr" round plain size="small" @click="toForm()">+ 新增课程</el-button>
         </div>
 
         <el-table
@@ -55,7 +55,7 @@
 
                 <span slot="footer" class="dialog-footer">
                     <el-button @click="isShowDialog = false">取 消</el-button>
-                    <el-button type="primary" @click="doAdd">确 定</el-button>
+                    <el-button type="primary" @click="doSubmit">确 定</el-button>
                 </span>
             </el-dialog>
         </div>
@@ -63,9 +63,7 @@
 </template>
 
 <script>
-    import BaseService from '../service/BaseService';
-
-    const courseService = new BaseService('course');
+    import courseService from '../service/CourseService';
 
     export default {
         data () {
@@ -92,7 +90,7 @@
                 Object.assign(this.form, course || getEmptyForm());
             },
 
-            doAdd () {
+            doSubmit () {
                 this.$refs.form.validate( valid => {
                     if(!valid) return;
 
@@ -119,7 +117,6 @@
 
     function getEmptyForm () {
         return {
-            _id: null,
             name: '',
             hours: null,
             remark: ''
