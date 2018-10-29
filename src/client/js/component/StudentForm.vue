@@ -2,26 +2,33 @@
 <template>
         <el-dialog
                 :visible="true"
-                title="新增学员"
+                :title="(student ? '编辑' : '新增') + '学员信息'"
                 @close="onClose"
                 append-to-body
                 width="30%">
 
             <el-form ref="form" :rules="rules" :model="form" label-width="80px">
                 <el-form-item label="姓名" prop="name">
-                    <el-input v-model="form.name" placeholder="注：创建后姓名不可以更改" :max-length="30"></el-input>
+                    <span v-if="student">{{ student.name }}</span>
+                    <el-input v-model="form.name" placeholder="注：创建后姓名不可以更改" :max-length="30" v-else></el-input>
                 </el-form-item>
                 <el-form-item label="联系方式" prop="contact">
                     <el-input v-model="form.contact" placeholder="输入联系方式" :max-length="20"></el-input>
                 </el-form-item>
                 <el-form-item label="学校" prop="school">
-                    <el-input v-model="form.school" placeholder="输入学校":max-length="30"></el-input>
+                    <el-select v-model="form.school" placeholder="选择学校" style="width: 100%;">
+                        <el-option v-for="school in schoolList" :key="grade"
+                                   :value="school" :label="school"></el-option>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="年级" prop="grade">
-                    <el-input v-model="form.grade" placeholder="输入年级":max-length="20"></el-input>
+                    <el-select v-model="form.grade" placeholder="选择年级" style="width: 100%;">
+                        <el-option v-for="grade in gradeList" :key="grade"
+                                   :value="grade + '年级'" :label="grade + '年级'"></el-option>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="家庭住址" prop="address">
-                    <el-input v-model="form.address" placeholder="输入家庭住址":max-length="100"></el-input>
+                    <el-input v-model="form.address" placeholder="输入家庭住址" :max-length="100"></el-input>
                 </el-form-item>
                 <el-form-item label="备注">
                     <el-input type="textarea" :rows="3" v-model="form.remark" :max-length="500" placeholder="输入备注"></el-input>
@@ -42,11 +49,14 @@
 
         props: {
             classId: String,
-            studentId: String
+            student: Object
         },
 
         data () {
             return {
+                schoolList: ['徐公桥小学', '安亭小学'],
+                gradeList: ['一', '二', '三', '四', '五', '六', '七', '八', '九'],
+
                 form: {
                     name: '',
                     contact: '',
@@ -66,7 +76,7 @@
         },
 
         created () {
-            classesService.findStudent(this.classId, this.studentId).then( ({ data }) => {
+            this.student && classesService.findStudent(this.classId, this.student._id).then( ({ data }) => {
                 if(data.studentList.length > 0 ){
                     Object.assign(this.form, data.studentList[0]);
                 }
@@ -83,7 +93,7 @@
                         classesService.createStudent(this.classId, this.form);
 
                     p.then( res => {
-                        this.$message.success('添加成功！');
+                        this.$message.success('操作成功！');
                         this.$emit('on-success');
                     } );
                 });

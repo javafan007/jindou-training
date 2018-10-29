@@ -120,7 +120,7 @@
             _buildDateRange () {
                 let end = new Date();
                 let result = [];
-                for(let i=12; i>=-1; i--) {
+                for(let i=12; i>=0; i--) {
                     let d = new Date();
                     d.setMonth(end.getMonth() - i);
                     

@@ -7,6 +7,6 @@ const Teacher = new mongoose.Schema({
     phone: String,
     course: String,
     remark: String
-}, { collection: 'teacher' });
+}, { collection: 'teacher', timestamps: {createdAt: 'createdAt', updatedAt: 'updatedAt'} });
 
 module.exports = mongoose.model('teacher', Teacher);

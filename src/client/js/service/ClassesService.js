@@ -26,6 +26,10 @@ class ClassesService extends BaseService {
     findStudent (classId, studentId) {
         return axios.get(`/api/${this.model}/${classId}/student/${studentId}`);
     }
+
+    sign (classId, payload) {
+        return axios.put(`/api/${this.model}/${classId}/setSignTable`, payload);
+    }
 }
 
 export default new ClassesService('classes');

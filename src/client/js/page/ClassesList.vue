@@ -2,14 +2,27 @@
 <template>
     <div>
         <div class="class-search-filter u-clear">
-            <el-select v-model="params.classId" placeholder="请选择班级" clearable filterable size="small" class="u-fl">
-                <el-option
-                        v-for="item in top20List"
-                        :key="item._id"
-                        :label="item.name"
-                        :value="item._id">
-                </el-option>
-            </el-select>
+            <div class="u-fl">
+                <el-select v-model="params.classId" placeholder="请选择班级" clearable filterable size="small" class="u-fl">
+                    <el-option
+                            v-for="item in top20List"
+                            :key="item._id"
+                            :label="item.name"
+                            :value="item._id">
+                    </el-option>
+                </el-select>
+                <el-date-picker class="u-ml20"
+                        v-model="dateRange"
+                        size="small"
+                        @change="changeDateRange"
+                        type="daterange"
+                        value-format="yyyy-MM-dd"
+                        range-separator="至"
+                        start-placeholder="开班开始日期"
+                        end-placeholder="开班结束日期">
+                </el-date-picker>
+            </div>
+
 
             <div class="u-fr">
                 <el-button type="success" plain round size="small" @click="toForm()">+ 新增班级</el-button>
@@ -75,7 +88,7 @@
                     label="开班时间"
                     min-width="60">
                 <template slot-scope="scope">
-                    {{ moment(scope.row.startDate).format('YYYY-MM-DD') }}
+                    {{ scope.row.startDate | moment('YYYY-MM-DD') }}
                 </template>
             </el-table-column>
             <el-table-column
@@ -104,13 +117,12 @@
             </el-table-column>
             <el-table-column
                     label="操作"
-                    min-width="50">
+                    min-width="80">
                 <template slot-scope="scope">
                     <el-button type="text" icon="el-icon-edit" @click="toForm(scope.row._id)"></el-button>
-                    <el-button type="text" class="u-primary" icon="el-icon-tickets" @click="displaySignTable(scope.row._id)"></el-button>
+                    <el-button type="text" class="u-primary" icon="el-icon-tickets" v-if="isGenerateSignTable(scope.row)" @click="displaySignTable(scope.row._id)"></el-button>
+                    <el-button type="text" class="u-primary" icon="el-icon-plus" v-else @click="generateSignTable(scope.row)">生成签到表</el-button>
                     <el-button type="text" class="u-danger" icon="el-icon-delete" @click="doDelete(scope.$index)"></el-button>
-
-                    <el-button type="text" class="u-danger" @click="generateSignTable(scope.row)">生成签到表</el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -138,8 +150,6 @@
 </template>
 
 <script>
-    import axios from 'axios';
-    import moment from 'moment';
     import ClassForm from '../component/ClassesForm.vue';
     import StudentManage from '../component/StudentManage.vue';
     import SignTable from '../component/SignTable.vue';
@@ -155,8 +165,8 @@
 
         data () {
             return {
-                moment,
                 Utils,
+                dateRange: [],
                 params: {
                     classId: '',
                     startDate: '',
@@ -216,16 +226,28 @@
             //生成签到表
             generateSignTable (classes) {
                 classesService.findById(classes._id).then( ({ data }) => {
-                    if( !data.signTable || data.signTable.length == 0 ) return;
+                    if( this.isGenerateSignTable(data) ) return;
 
                     let { _id, startDate, hoursOfSign, weekday, course } = classes;
                     let studentList = data.studentList.map( s => ({ name: s.name, status: null }) );
 
                     let period = Utils.buildPeriod(course.hours, hoursOfSign, startDate, weekday);
-                    let signTable = period.map( date => ({ date, studentList }) );
+                    let signTable = period.map( item => ({ date: item.date, hours: item.hours, studentList }) );
 
-                    classesService.createSignTable(_id, signTable);
+                    classesService.createSignTable(_id, signTable).then( res => {
+                        this.$message.success('创建成功！');
+                        this._loadList();
+                    });
                 });
+            },
+
+            changeDateRange () {
+                this.setParam('startDate', this.dateRange ? this.dateRange[0] : '');
+                this.setParam('endDate', this.dateRange? this.dateRange[1] : '');
+            },
+
+            isGenerateSignTable (cls) {
+                return cls.signTable && cls.signTable.length > 0;
             },
 
             _findTop20 () {

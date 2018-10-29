@@ -8,6 +8,7 @@ const Utils =  {
                  startDate,     //第一天上课日期
                  weekday        //周几上课
     ) {
+        console.log('---', startDate);
         const learningTotalDay = Math.ceil(totalHours / hoursOfLearning);   //上课次数
         const days = 365 * 2;                   //教学周期最长2年
 
@@ -16,10 +17,13 @@ const Utils =  {
             let newDate = _getNewDate(startDate, day);
 
             if(newDate.getDay() === weekday) { //为上课的日期
-                learningDateList.push(newDate);
+                learningDateList.push({ date: newDate, hours: hoursOfLearning });
             }
 
             if(learningDateList.length >= learningTotalDay) {
+                //计算最后一课的课时数
+                learningDateList[learningDateList.length - 1].hours = totalHours % hoursOfLearning;
+
                 return learningDateList;
             }
         }
@@ -27,22 +31,10 @@ const Utils =  {
 
         function _getNewDate(startDate, inc = 0) {
             const start = new Date(startDate);
+            start.setDate(start.getDate() + inc);
 
-            let newDate = new Date();
-            newDate.setDate(start.getDate() + inc);
-
-            return newDate;
+            return start;
         }
-    },
-
-    //获取学期的最后一天
-    getLastLearningDay (totalHours,         //总课时数
-                        hoursOfLearning,   //学员一次上课的课时数
-                        startDate,     //第一天上课日期
-                        weekday        //周几上课
-    ) {
-        const period = Utils.buildPeriod(totalHours, hoursOfLearning, startDate, weekday);
-        return period[period.length - 1];
     },
 
     getWeekDay (weekday) {

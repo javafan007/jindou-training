@@ -64,7 +64,7 @@
 
         <!--学员表单-->
         <student-form :classId="classId"
-                      :studentId="editStudent._id"
+                      :student="editStudent"
                       @on-close="isShowDialog=false"
                       @on-success="onSaveSuccess"
                       v-if="isShowDialog">

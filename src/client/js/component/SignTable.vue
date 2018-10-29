@@ -16,21 +16,20 @@
                 <th width="100">日期</th>
                 <th width="50">课时</th>
                 <th v-for="s in classes.studentList">
-                    {{ s.name }} <br>
-                    （剩余<span class="u-danger"> {{ (classes.course.hours - learnedHours[s.name] ) }}</span> 课时）</th>
+                    {{ s.name }}
+                    <p>（剩余<span class="u-danger"> {{ (classes.course.hours - learnedHours[s.name] ) }}</span> 课时）</p>
+                </th>
             </tr>
-            <tr v-for="(item, dateIdx) in signTable">
-                <td align="center">{{ moment(item.date).format('MM月DD日') }}</td>
-                <td align="center">{{ (dateIdx + 1) * classes.hoursOfSign }}</td>
-                <td v-for="(s, stuIdx) in item.studentList" align="center">
-                    <span v-if="s.status !== null" class="u-icon-middle">
-                        <i v-if="s.status === 1" class="el-icon-success u-success"></i>
-                        <i v-else="" class="el-icon-error u-danger"></i>
-                    </span>
-                    <span v-else>
-                        <el-button type="text" size="small" @click="doSign(item.date, s, 1, dateIdx, stuIdx)">已签到</el-button>
-                        <el-button type="text" size="small" @click="doSign(item.date, s, 0, dateIdx, stuIdx)" class="u-danger">请假</el-button>
-                    </span>
+            <tr v-for="item in signTable">
+                <td align="center">{{ item.date | moment('MM月DD日') }}</td>
+                <td align="center">{{ item.hours }}</td>
+                <td v-for="student in item.studentList" align="center">
+                    <el-select v-model="student.status" @change="doSign(item.date, student)" size="mini">
+                        <el-option :value="1" label="已签到"></el-option>
+                        <el-option :value="0" label="请假"></el-option>
+                    </el-select>
+                    <el-tag type="success" v-if="student.status == 1" size="small">已签到</el-tag>
+                    <el-tag type="danger" v-if="student.status == 0" size="small">请假</el-tag>
                 </td>
             </tr>
             </thead>
@@ -40,12 +39,8 @@
 </template>
 
 <script>
-    import axios from 'axios';
-    import moment from 'moment';
-    import BaseService from '../service/BaseService';
+    import classesService from '../service/ClassesService';
     import Utils from '../utils/Utils';
-
-    const classesService = new BaseService('classes');
 
     export default {
         props: {
@@ -54,7 +49,6 @@
 
         data () {
             return {
-                moment,
                 Utils,
                 classes: null,
                 signTable: []
@@ -70,11 +64,10 @@
             learnedHours () {
                 let result = {};
                 this.classes.studentList.forEach( item => result[item.name] = 0 );
-
                 this.signTable.forEach( dateRow => {
                     dateRow.studentList.forEach( stuRow => {
                         if(stuRow.status === 1) {
-                            result[stuRow.name] += this.classes.hoursOfSign;
+                            result[stuRow.name] += dateRow.hours;
                         }
                     });
                 });
@@ -84,9 +77,9 @@
         },
 
         methods: {
-            doSign (d, s, status) {
-                const data = {date: d, name: s.name, status: status};
-                axios.put(`/api/classes/${this.classId}/setSignTable`, data)
+            doSign (d, s) {
+                const data = {date: d, name: s.name, status: s.status};
+                classesService.sign(this.classId, data)
                     .then( ({ data }) => this._loadDetail() );
             },
 

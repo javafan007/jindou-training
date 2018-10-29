@@ -7,7 +7,7 @@ const User = new mongoose.Schema({
     password: String,
     role: String,
     remark: String
-}, { collection: 'user' });
+}, { collection: 'user', timestamps: {createdAt: 'createdAt', updatedAt: 'updatedAt'} });
 
 module.exports = mongoose.model('user', User);
 

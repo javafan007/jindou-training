@@ -15,12 +15,17 @@ module.exports = self = {
     },
 
     async findList (ctx) {
-        const { classId } = ctx.query;
+        const { classId, startDate, endDate } = ctx.query;
         let params = {};
         if(classId) {
             params._id = classId;
         }
-
+        if(startDate && endDate ) {
+            params.startDate = {
+                $gt: startDate,
+                $lte: endDate
+            }
+        }
         ctx.body = await Model.find(params)
             .populate({path: 'course'})
             .populate({path: 'teacher'});
