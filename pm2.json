@@ -1,0 +1,17 @@
+{
+  "name": "jindu-training",
+  "script": "./src/server/app.js",
+  "cwd": "./",
+  "env": {
+    "NODE_ENV": "dev"
+  },
+  "env_development": {
+    "NODE_ENV": "development"
+  },
+  "env_test": {
+    "NODE_ENV": "test"
+  },
+  "env_production": {
+    "NODE_ENV": "production"
+  }
+}
