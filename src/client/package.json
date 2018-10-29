@@ -4,7 +4,8 @@
   "description": "training client",
   "main": "index.js",
   "scripts": {
-    "start": "parcel watch index.html  --public-url /"
+    "dev": "parcel watch index.html  --public-url /",
+    "start": "parcel build index.html  --public-url /"
   },
   "repository": {
     "type": "git",
