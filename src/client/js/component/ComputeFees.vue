@@ -112,14 +112,16 @@
                     cls.totalHours = totalSign * hoursOfSign;   //班级总课时
                     cls.totalFees = cls.totalHours * fees;  //班级总课时费
 
-                    this.totalHours += cls.totalHours;  //本月总课时
-                    this.totalFees += cls.totalFees;    //本月总课时费
+                    this.totalHours += cls.totalHours;  //本月所有班级总课时
+                    this.totalFees += cls.totalFees;    //本月所有班级总课时费
                 });
             },
 
             _buildDateRange () {
                 let end = new Date();
                 let result = [];
+
+                //可查看最近12个月的课时费
                 for(let i=12; i>=0; i--) {
                     let d = new Date();
                     d.setMonth(end.getMonth() - i);
