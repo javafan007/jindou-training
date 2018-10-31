@@ -9,8 +9,7 @@
 
             <el-form ref="form" :rules="rules" :model="form" label-width="80px">
                 <el-form-item label="姓名" prop="name">
-                    <span v-if="student">{{ student.name }}</span>
-                    <el-input v-model="form.name" placeholder="注：创建后姓名不可以更改" :max-length="30" v-else></el-input>
+                    <el-input v-model="form.name" placeholder="输入姓名" :max-length="30"></el-input>
                 </el-form-item>
                 <el-form-item label="联系方式" prop="contact">
                     <el-input v-model="form.contact" placeholder="输入联系方式" :max-length="20"></el-input>

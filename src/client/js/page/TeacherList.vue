@@ -68,9 +68,7 @@
                     min-width="50">
                 <template slot-scope="scope">
                     <el-button type="text" icon="el-icon-edit" @click="toForm(scope.row)"></el-button>
-                    <el-tooltip content="查询课时费" placement="top-start">
-                        <compute-fees :teacher="scope.row"></compute-fees>
-                    </el-tooltip>
+                    <compute-fees :teacher="scope.row"></compute-fees>
                     <el-button type="text" class="u-danger" icon="el-icon-delete" @click="doDelete(scope.row._id)"></el-button>
                 </template>
             </el-table-column>

@@ -8,7 +8,6 @@ const Utils =  {
                  startDate,     //第一天上课日期
                  weekday        //周几上课
     ) {
-        console.log('---', startDate);
         const learningTotalDay = Math.ceil(totalHours / hoursOfLearning);   //上课次数
         const days = 365 * 2;                   //教学周期最长2年
 
@@ -22,8 +21,10 @@ const Utils =  {
 
             if(learningDateList.length >= learningTotalDay) {
                 //计算最后一课的课时数
-                learningDateList[learningDateList.length - 1].hours = totalHours % hoursOfLearning;
-
+                const rest = totalHours % hoursOfLearning;
+                if(rest > 0) {
+                    learningDateList[learningDateList.length - 1].hours = rest;
+                }
                 return learningDateList;
             }
         }

@@ -10,8 +10,7 @@ module.exports = self = {
     },
 
     async update (ctx) {
-        const r = await Model.findByIdAndUpdate(ctx.params.id, ctx.request.body);
-        ctx.body = r;
+        ctx.body = await Model.findByIdAndUpdate(ctx.params.id, ctx.request.body);
     },
 
     async findList (ctx) {
@@ -32,7 +31,9 @@ module.exports = self = {
     },
 
     async findTop20 (ctx) {
-        ctx.body = await Model.find({}, {_id: 1, name: 1}).limit(20).sort('-startDate');
+        ctx.body = await Model.find({}, {_id: 1, name: 1})
+            .limit(20)
+            .sort('-startDate');
     },
 
     async findById (ctx) {
@@ -47,85 +48,59 @@ module.exports = self = {
     },
 
     async deleteById (ctx) {
-        await Model.findByIdAndRemove(ctx.params.id);
-        ctx.body = 'ok';
+        ctx.body = await Model.findByIdAndRemove(ctx.params.id);
     },
 
     //往班级中添加学员
     async createStudent (ctx) {
         const student = ctx.request.body;
-        await Model.update({_id: ctx.params.id}, {$push: {studentList: student}});
+        await Model.updateOne({_id: ctx.params.id}, {$push: {studentList: student}});
         let classes = await Model.findById(ctx.params.id);
 
-        classes.signTable.forEach( item => {
-            item.studentList.push({name: student.name, status: null});
+        const insertedStudent = classes.studentList.find( item => item.name === student.name);
+
+        insertedStudent && classes.signTable.forEach( item => {
+            item.studentList.push({studentId: insertedStudent._id, status: null});
         });
         const r = await classes.save();
 
         ctx.body = r;
     },
 
+    //修改班级中的学员信息
     async updateStudent (ctx) {
         const { id, studentId } = ctx.params;
         const student = ctx.request.body;
-        const r = await Model.update({_id: id, 'studentList._id': studentId }, {$set: {"studentList.$": student}});
-        ctx.body = r;
+
+        ctx.body = await Model.update(
+            {_id: id, 'studentList._id': studentId },
+            {$set: {"studentList.$": student}}
+        );
     },
 
-    async findStudent (ctx) {
-        const { classId, studentId } = ctx.params;
-        ctx.body = await Model.findById(classId, {"studentList": {$elemMatch: {"_id": studentId}}});
-    },
-
-    //签到
-    async doSign (ctx) {
-        const classes = await Model.findById(ctx.params.id);
-
-        const data = ctx.request.body;
-        classes.signInfo.set(data.key, data.value);
-
-        const r = await classes.save();
-
-        ctx.body = r;
+    //查询学员详情
+    async findStudentById (ctx) {
+        const { id, studentId } = ctx.params;
+        ctx.body = await Model.findById(id,
+            {"studentList": {$elemMatch: {"_id": studentId}}}
+        );
     },
 
     //生成签到表
     async createSignTable (ctx) {
-        const classes = await Model.findById(ctx.params.id);
-        classes.signTable = ctx.request.body;
-        const r = await classes.save();
-
-        ctx.body = r;
+        ctx.body = await Model.update(
+            {_id: ctx.params.id},
+            {$set: {signTable: ctx.request.body}}
+        );
     },
 
-    async setSignTable (ctx) {
-        const { date, name, status } = ctx.request.body;
-        const classes = await Model.findById(ctx.params.id);
+    //更改签到信息
+    async saveSignItem (ctx) {
+        const { id, signId } = ctx.params;
 
-        let dateRecord = classes.signTable.find( item => moment(item.date).format('YYYYMMDD') == moment(new Date(date)).format('YYYYMMDD'));
-
-        let student = dateRecord.studentList.find( item => item.name == name);
-        if(student) {
-            student.status = status;
-        } else {
-            dateRecord.studentList.push({ name, status });
-        }
-
-        ctx.body = await classes.save();
-    },
-
-    //获取签到信息
-    async getSignInfo (ctx) {
-        const classes = await Model.findById(ctx.params.id);
-
-        ctx.body = classes.signInfo;
+        ctx.body = await Model.update(
+            {_id: id, 'signTable._id': signId},
+            {$set: {'signTable.$': ctx.request.body}}
+        );
     }
-
-    //修改班级中的学员信息
-    // async updateStudent (ctx) {
-    //     const student = ctx.request.body;
-    //     Model.update({_id: ctx.params.id}, {$push: {studentList: }})
-    //
-    //     ctx.body = student;
-    // }
 };

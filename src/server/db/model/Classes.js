@@ -22,7 +22,7 @@ let Classes = new Schema({
             hours: Number,
             studentList: [
                 {
-                    name: String,
+                    studentId: String,
                     status: Number
                 }
             ]

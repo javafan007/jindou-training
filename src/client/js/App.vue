@@ -3,6 +3,7 @@
     <div class="wrap">
         <header class="header u-clear">
             <nav class="u-fl">
+                <div class="company-logo"><i class="el-icon-edit">金都书院</i></div>
                 <router-link :to="{name: 'classes'}" class="header-item" :class="{'header-item--selected': $route.name == 'classes'}">班级管理</router-link>
                 <router-link :to="{name: 'course'}" class="header-item" :class="{'header-item--selected': $route.name == 'course'}">课程管理</router-link>
                 <router-link :to="{name: 'teacher'}" class="header-item" :class="{'header-item--selected': $route.name == 'teacher'}">教师管理</router-link>
@@ -13,7 +14,6 @@
                 <a href="javascript:;" class="header-item" @click="logout">退出</a>
             </div>
         </header>
-
         <div class="content">
             <router-view></router-view>
         </div>
@@ -56,6 +56,15 @@
         padding: 0 50px;
         background: #409EFF;
         line-height: 38px;
+    }
+    .company-logo {
+        display: inline-block;
+        padding: 0 20px;
+        color: #fff;
+        font-family: Lishu;
+        font-weight: 700;
+        font-size: 20px;
+        text-shadow: 0px 2px 2px #333;
     }
 
     .header-item {

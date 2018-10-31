@@ -102,7 +102,11 @@
 
             if(this.classId) {
                 classesService.findById(this.classId)
-                    .then( ({ data }) => Object.assign(this.form, data) )
+                    .then( ({ data }) => {
+                        Object.assign(this.form, data);
+                        this.form.course = data.course._id;
+                        this.form.teacher = data.teacher._id;
+                    })
             }
         },
 

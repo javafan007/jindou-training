@@ -22,14 +22,12 @@
                         end-placeholder="开班结束日期">
                 </el-date-picker>
             </div>
-
-
             <div class="u-fr">
                 <el-button type="success" plain round size="small" @click="toForm()">+ 新增班级</el-button>
             </div>
         </div>
 
-        <el-table
+        <el-table class="u-mt20"
                 :data="list"
                 :cell-style="{padding: '3px 0'}"
                 style="width: 100%">
@@ -58,11 +56,10 @@
                 </template>
             </el-table-column>
             <el-table-column
-                    prop="course.name"
                     label="课程"
                     min-width="60">
                 <template slot-scope="scope">
-                    <el-popover
+                    <el-popover v-if="scope.row.course"
                             placement="left-start"
                             width="300"
                             trigger="click">
@@ -94,7 +91,7 @@
             <el-table-column
                     prop="classtime"
                     label="上课时间"
-                    min-width="60">
+                    min-width="70">
                 <template slot-scope="scope">
                     每周{{ Utils.getWeekDay(scope.row.weekday) }} {{ scope.row.classtime }}
                 </template>
@@ -102,7 +99,7 @@
             <el-table-column
                     prop="hoursOfSign"
                     label="每次签到课时"
-                    min-width="60">
+                    min-width="50">
                 <template slot-scope="scope">
                     {{ scope.row.hoursOfSign }}课时
                 </template>
@@ -226,10 +223,13 @@
             //生成签到表
             generateSignTable (classes) {
                 classesService.findById(classes._id).then( ({ data }) => {
-                    if( this.isGenerateSignTable(data) ) return;
+                    if( this.isGenerateSignTable(data) ) {
+                        this._loadList();
+                        return;
+                    }
 
                     let { _id, startDate, hoursOfSign, weekday, course } = classes;
-                    let studentList = data.studentList.map( s => ({ name: s.name, status: null }) );
+                    let studentList = data.studentList.map( s => ({ studentId: s._id, status: null }) );
 
                     let period = Utils.buildPeriod(course.hours, hoursOfSign, startDate, weekday);
                     let signTable = period.map( item => ({ date: item.date, hours: item.hours, studentList }) );

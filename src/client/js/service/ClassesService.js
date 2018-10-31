@@ -28,7 +28,7 @@ class ClassesService extends BaseService {
     }
 
     sign (classId, payload) {
-        return axios.put(`/api/${this.model}/${classId}/setSignTable`, payload);
+        return axios.put(`/api/${this.model}/${classId}/sign/${payload._id}`, payload);
     }
 }
 

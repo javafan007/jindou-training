@@ -13,10 +13,11 @@ ul {
 .u-fl { float: left; }
 .u-fr { float: right; }
 .u-clear::after {
-    content: '.';
-    visibility: hidden;
-    clear: both;
+    content: "";
+    display: block;
+    clear:both;
 }
+.u-center { text-align: center; }
 .u-primary { color: #409EFF; }
 .u-success { color: #67C23A; }
 .u-warning { color: #E6A23C; }

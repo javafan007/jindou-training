@@ -28,12 +28,10 @@ router.post('/api/classes', ClassesController.create);
 router.put('/api/classes/:id', ClassesController.update);
 router.post('/api/classes/:id/student', ClassesController.createStudent);
 router.put('/api/classes/:id/student/:studentId', ClassesController.updateStudent);
-router.get('/api/classes/:classId/student/:studentId', ClassesController.findStudent);
-router.put('/api/classes/:id/sign', ClassesController.doSign);
-router.get('/api/classes/:id/sign', ClassesController.getSignInfo);
+router.get('/api/classes/:id/student/:studentId', ClassesController.findStudentById);
 
 router.put('/api/classes/:id/createSignTable', ClassesController.createSignTable);
-router.put('/api/classes/:id/setSignTable', ClassesController.setSignTable);
+router.put('/api/classes/:id/sign/:signId', ClassesController.saveSignItem);
 
 router.get('/api/classes', ClassesController.findList);
 router.get('/api/classes/top20', ClassesController.findTop20);
