@@ -75,11 +75,8 @@
         },
 
         created () {
-            this.student && classesService.findStudent(this.classId, this.student._id).then( ({ data }) => {
-                if(data.studentList.length > 0 ){
-                    Object.assign(this.form, data.studentList[0]);
-                }
-            });
+            this.student && classesService.findStudent(this.classId, this.student._id)
+                .then( ({ data }) => Object.assign(this.form, data) );
         },
 
         methods: {

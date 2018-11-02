@@ -68,7 +68,7 @@
                     min-width="50">
                 <template slot-scope="scope">
                     <el-button type="text" icon="el-icon-edit" @click="toForm(scope.row)"></el-button>
-                    <compute-fees :teacher="scope.row"></compute-fees>
+                    <el-button type="text" icon="el-icon-view" @click="showFeesDialog(scope.row)"></el-button>
                     <el-button type="text" class="u-danger" icon="el-icon-delete" @click="doDelete(scope.row._id)"></el-button>
                 </template>
             </el-table-column>
@@ -103,6 +103,11 @@
                 </span>
             </el-dialog>
         </div>
+
+        <compute-fees
+                v-if="isShowFeesDialog"
+                @on-close="isShowFeesDialog=false"
+                :teacher="currentTeacher"></compute-fees>
     </div>
 </template>
 

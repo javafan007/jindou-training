@@ -3,14 +3,11 @@ const Model = require('../db/model/Course');
 
 module.exports = {
     async create (ctx)  {
-        const item = new Model(ctx.request.body);
-        const r = await item.save();
-        ctx.body = r;
+        ctx.body = await Model.insert(ctx.request.body);
     },
 
     async update (ctx) {
-        const r = await Model.findByIdAndUpdate(ctx.params.id, ctx.request.body);
-        ctx.body = r;
+        ctx.body = await Model.findByIdAndUpdate(ctx.params.id, ctx.request.body);;
     },
 
     async findList (ctx) {
@@ -18,8 +15,6 @@ module.exports = {
     },
 
     async deleteById (ctx) {
-        await Model.findByIdAndRemove(ctx.params.id);
-
-        ctx.body = 'ok';
+        ctx.body = await Model.findByIdAndRemove(ctx.params.id);;
     }
 };

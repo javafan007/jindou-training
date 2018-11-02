@@ -4,9 +4,7 @@ const moment = require('moment');
 
 module.exports = self = {
     async create (ctx)  {
-        const item = new Model(ctx.request.body);
-        const r = await item.save();
-        ctx.body = r;
+        ctx.body = await Model.insert(ctx.request.body);
     },
 
     async update (ctx) {
@@ -39,8 +37,8 @@ module.exports = self = {
     async findById (ctx) {
         let item = await Model.findById(ctx.params.id)
             .populate('course')
-            .populate('teacher')
-            .exec();
+            .populate('teacher');
+
         item = item.toJSON();
         item.startDate = new Date(item.startDate).getTime();
 
@@ -53,18 +51,15 @@ module.exports = self = {
 
     //往班级中添加学员
     async createStudent (ctx) {
-        const student = ctx.request.body;
-        await Model.updateOne({_id: ctx.params.id}, {$push: {studentList: student}});
         let classes = await Model.findById(ctx.params.id);
+        let stuList = classes.studentList;
+        stuList.push(ctx.request.body);
 
-        const insertedStudent = classes.studentList.find( item => item.name === student.name);
-
-        insertedStudent && classes.signTable.forEach( item => {
-            item.studentList.push({studentId: insertedStudent._id, status: null});
+        classes.signTable.forEach( item => {
+            item.studentList.push({studentId: stuList[stuList.length - 1]._id, status: null});
         });
-        const r = await classes.save();
 
-        ctx.body = r;
+        ctx.body = await classes.save();
     },
 
     //修改班级中的学员信息
@@ -81,9 +76,10 @@ module.exports = self = {
     //查询学员详情
     async findStudentById (ctx) {
         const { id, studentId } = ctx.params;
-        ctx.body = await Model.findById(id,
+        const classes = await Model.findById(id,
             {"studentList": {$elemMatch: {"_id": studentId}}}
         );
+        ctx.body = classes.studentList[0];
     },
 
     //生成签到表

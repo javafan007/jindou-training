@@ -1,12 +1,9 @@
 
 <template>
-    <div class="u-inblock">
-        <el-button type="text" icon="el-icon-view" @click="isShowDialog=true"></el-button>
         <el-dialog
-                v-if="isShowDialog"
                 :visible="true"
                 :title="teacher.name + '的本月课时费'"
-                @close="isShowDialog=false"
+                @close="onClose"
                 width="60%">
 
             <div class="class-search-filter">
@@ -20,6 +17,7 @@
                                 :value="item.value">
                         </el-option>
                     </el-select>
+                    <el-button type="success" plain round @click="exportExcel" size="small" class="u-ml10">导出excel</el-button>
                 </div>
                 <div class="u-fr" style="font-size: 20px;">
                     <span class="u-ml20">总课时：<span class="u-danger u-num-fz-large">{{ totalHours }}</span></span>
@@ -27,12 +25,12 @@
                 </div>
             </div>
 
-            <table class="fees-list" v-for="item in feesList">
+            <table class="fees-list" v-for="item in classesList">
                 <caption class="fees-title">
-                    <h2>{{ item.classes.name }}</h2>
+                    <h2>{{ item.cls.name }}</h2>
                     <p class="u-mt10">
                         <span class="u-ml20">总课时：<span class="u-danger u-num-fz-middle">{{ item.totalHours }}</span></span>
-                        <span class="u-ml20">课时费：<span class="u-danger u-num-fz-middle">{{ item.classes.fees }}</span> 元</span>
+                        <span class="u-ml20">课时费：<span class="u-danger u-num-fz-middle">{{ item.cls.fees }}</span> 元</span>
                         <span class="u-ml20">收入：<span class="u-danger u-num-fz-middle">{{ item.totalFees }}</span> 元</span>
                     </p>
                 </caption>
@@ -46,20 +44,19 @@
                 <tr v-for="row in item.signTable">
                     <td align="center">{{ moment(row.date).format('MM月DD日') }}</td>
                     <td v-for="s in row.studentList" align="center">
-                        <el-tag type="success" v-if="s.status === 1" size="mini">{{ s.status * item.classes.hoursOfSign }} h</el-tag>
+                        <el-tag type="success" v-if="s.status === 1" size="mini">{{ s.status * item.cls.hoursOfSign }} h</el-tag>
                         <el-tag type="danger" v-else-if="s.status === 0" size="mini">请假</el-tag>
                         <el-tag type="info" v-else size="mini">未打卡</el-tag>
                     </td>
                 </tr>
                 </thead>
             </table>
-            <div v-if="feesList.length == 0" class="fees-no-result">您本月没有课时费哟 *^_^*</div>
+            <div v-if="classesList.length == 0" class="fees-no-result">您本月没有课时费哟 *^_^*</div>
 
             <span slot="footer" class="dialog-footer">
-                <el-button @click="isShowDialog=false">取 消</el-button>
+                <el-button @click="onClose">取 消</el-button>
             </span>
         </el-dialog>
-    </div>
 </template>
 
 <script>
@@ -77,10 +74,18 @@
                 params: {
                     date: moment(new Date()).format('YYYY-MM-DD')
                 },
-                feesList: [],
+
+                /**
+                 *  {
+                 *  totalHours,
+                 *  totalFees,
+                 *  classesList: [
+                 *      {totalHours, totalFees, cls: {}, signTable: [] }
+                 *  ] }
+                 */
+                classesList: [],
                 totalHours: 0,      //本月总课时
-                totalFees: 0,       //本月总课时费
-                isShowDialog: false
+                totalFees: 0       //本月总课时费
             }
         },
 
@@ -93,28 +98,10 @@
             loadClasses () {
                 teacherService.findSignTablesByTeacherId(this.teacher._id, this.params)
                     .then( ({ data }) => {
-                        this.feesList = data;
-                        this._setTotalHoursAndFees(data);
+                        this.classesList = data.classesList;
+                        this.totalHours = data.totalHours;
+                        this.totalFees = data.totalFees;
                     });
-            },
-
-            _setTotalHoursAndFees (feesList = []) {
-                this.totalHours = this.totalFees = 0;
-                feesList.forEach( cls => {
-                    const { hoursOfSign, fees } = cls.classes;
-
-                    //本月总签到次数
-                    let totalSign = 0;
-                    cls.signTable.forEach( dateRow => {
-                        totalSign += dateRow.studentList.filter( stu => stu.status === 1 ).length;
-                    });
-
-                    cls.totalHours = totalSign * hoursOfSign;   //班级总课时
-                    cls.totalFees = cls.totalHours * fees;  //班级总课时费
-
-                    this.totalHours += cls.totalHours;  //本月所有班级总课时
-                    this.totalFees += cls.totalFees;    //本月所有班级总课时费
-                });
             },
 
             _buildDateRange () {
@@ -132,6 +119,14 @@
                     });
                 }
                 return result.reverse();
+            },
+
+            exportExcel () {
+                window.location = `/api/teacher/${this.teacher._id}/export?date=${this.params.date}`;
+            },
+
+            onClose () {
+                this.$emit('on-close');
             }
         }
     }

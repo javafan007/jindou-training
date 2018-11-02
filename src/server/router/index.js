@@ -19,6 +19,7 @@ router.delete('/api/course/:id', CourseController.deleteById);
 router.post('/api/teacher', TeacherController.create);
 router.put('/api/teacher/:id', TeacherController.update);
 router.get('/api/teacher/:id/signTable', TeacherController.findSignTablesByTeacherId);
+router.get('/api/teacher/:id/export', TeacherController.exportExcel);
 router.get('/api/teacher/:id/classes', TeacherController.findClassesByTeacherId);
 router.get('/api/teacher', TeacherController.findList);
 router.delete('/api/teacher/:id', TeacherController.deleteById);
